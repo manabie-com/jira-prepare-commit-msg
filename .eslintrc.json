@@ -29,6 +29,7 @@
       "code": 120,
       "tabWidth": 2
     }],
-    "prettier/prettier": "error"
+    "prettier/prettier": "error",
+    "@typescript-eslint/prefer-regexp-exec": 0
   }
 }

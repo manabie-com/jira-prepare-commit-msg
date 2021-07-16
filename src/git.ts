@@ -13,8 +13,8 @@ interface MessageInfo {
 }
 
 // eslint-disable-next-line max-len
-const conventionalCommitRegExp =
-  /^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z- ]+\)!?)?: ([\w \S]+)$/g;
+// const conventionalCommitRegExp =
+//   /^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z- ]+\)!?)?: ([\w \S]+)$/g;
 const gitVerboseStatusSeparator = '------------------------ >8 ------------------------';
 
 function getMsgFilePath(index = 0): string {
@@ -136,28 +136,28 @@ function insertJiraTicketIntoMessage(messageInfo: MessageInfo, jiraTickets: stri
 
     debug(`First line to insert is: ${firstLineToInsert > -1 ? lines[firstLineToInsert] : ''} (${firstLineToInsert})`);
 
-    if (firstLineToInsert !== -1) {
-      const line = lines[firstLineToInsert];
-      const tickets = excludeIncludedTickets(line, jiraTickets);
-
-      if (config.isConventionalCommit) {
-        debug(`Finding conventional commit in: ${line}`);
-        conventionalCommitRegExp.lastIndex = -1;
-        const [match, type, scope, msg] = conventionalCommitRegExp.exec(line) ?? [];
-        if (match) {
-          debug(`Conventional commit message: ${match}`);
-          lines[firstLineToInsert] = `${type}${scope || ''}: ${replaceMessageByPattern(
-            tickets,
-            msg,
-            config.messagePattern,
-          )}`;
-        }
-      } else {
-        if (tickets.length > 0) {
-          lines[firstLineToInsert] = replaceMessageByPattern(jiraTickets, line || '', config.messagePattern);
-        }
-      }
-    }
+    // if (firstLineToInsert !== -1) {
+    //   const line = lines[firstLineToInsert];
+    //   const tickets = excludeIncludedTickets(line, jiraTickets);
+    //
+    //   if (config.isConventionalCommit) {
+    //     debug(`Finding conventional commit in: ${line}`);
+    //     conventionalCommitRegExp.lastIndex = -1;
+    //     const [match, type, scope, msg] = conventionalCommitRegExp.exec(line) ?? [];
+    //     if (match) {
+    //       debug(`Conventional commit message: ${match}`);
+    //       lines[firstLineToInsert] = `${type}${scope || ''}: ${replaceMessageByPattern(
+    //         tickets,
+    //         msg,
+    //         config.messagePattern,
+    //       )}`;
+    //     }
+    //   } else {
+    //     if (tickets.length > 0) {
+    //       lines[firstLineToInsert] = replaceMessageByPattern(jiraTickets, line || '', config.messagePattern);
+    //     }
+    //   }
+    // }
 
     const forceFirstLine = lines[0];
     const distinctTickets: Set<string> = new Set(); // start with full tickets
@@ -251,8 +251,8 @@ export async function getBranchName(gitRoot: string): Promise<string> {
 export function getJiraTicket(branchName: string, config: JPCMConfig): string[] {
   debug('getJiraTicket');
 
-  const jiraIdPattern = new RegExp(config.jiraTicketPattern, 'i');
-  const matched = jiraIdPattern.exec(branchName);
+  const jiraIdPattern = new RegExp(config.jiraTicketPattern, 'ig');
+  const matched = branchName.match(jiraIdPattern);
 
   if (!matched || matched.length === 0) {
     throw new Error('The JIRA ticket ID not found');
