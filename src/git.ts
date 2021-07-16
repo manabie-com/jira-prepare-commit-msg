@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as cp from 'child_process';
 import { JPCMConfig } from './config';
-import { debug } from './log';
+import { log, debug } from './log';
 
 interface MessageInfo {
   originalMessage: string;
@@ -54,7 +54,7 @@ function replaceMessageByPattern(jiraTickets: string[], message: string, pattern
     })
     .join('');
   const result = pattern.replace('$J', escapeReplacement(transformed)).replace('$M', escapeReplacement(message));
-  debug(`Replacing message: ${result}`);
+  log(`Replacing message: ${result}`);
   return result;
 }
 
