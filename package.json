@@ -60,17 +60,6 @@
     "eslint": "eslint --ext .js --ext .ts src/",
     "eslint:fix": "eslint --ext .js --ext .ts src/ --fix",
     "prettier": "prettier --parser typescript --write \"src/**/*.ts\"",
-    "tsc": "tsc -p ./",
-    "prepare:husky:2": "cd ./test/husky2 && git init && git checkout -b JIRA-4321-test-husky2 && npm i",
-    "prepare:husky:3": "cd ./test/husky3 && git init && git checkout -b JIRA-4321-test-husky3 && npm i",
-    "prepare:husky:4": "cd ./test/husky4 && git init && git checkout -b JIRA-4321-test-husky4 && npm i",
-    "prepare:husky:5": "cd ./test/husky5 && git init && git checkout -b JIRA-4321-test-husky5 && npm i",
-    "cleanup:husky:2": "cd ./test/husky2 && rimraf .git && rimraf node_modules && rimraf package-lock.json",
-    "cleanup:husky:3": "cd ./test/husky3 && rimraf .git && rimraf node_modules && rimraf package-lock.json",
-    "cleanup:husky:4": "cd ./test/husky4 && rimraf .git && rimraf node_modules && rimraf package-lock.json",
-    "cleanup:husky:5": "cd ./test/husky5 && rimraf .git && rimraf node_modules && rimraf package-lock.json && rimraf .husky",
-    "pretest": "npm run prepare:husky:2 && npm run prepare:husky:3 && npm run prepare:husky:4 && npm run prepare:husky:5",
-    "test": "npm run compile && ava test/test.ts",
-    "posttest": "npm run cleanup:husky:2 && npm run cleanup:husky:3 && npm run cleanup:husky:4 && npm run cleanup:husky:5"
+    "build": "tsc -p ./"
   }
 }
