@@ -36,7 +36,7 @@ const log_1 = require("./log");
     }
     catch (err) {
         log_1.error(err);
-        process.exit(1);
+        // process.exit(1);
     }
     log_1.log('done');
 })();

@@ -19,7 +19,7 @@ import { error, log } from './log';
     git.writeJiraTicket(tickets, config);
   } catch (err) {
     error(err);
-    process.exit(1);
+    // process.exit(1);
   }
 
   log('done');
