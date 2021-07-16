@@ -60,7 +60,7 @@ function replaceMessageByPattern(jiraTickets, message, pattern) {
     })
         .join('');
     const result = pattern.replace('$J', escapeReplacement(transformed)).replace('$M', escapeReplacement(message));
-    log_1.debug(`Replacing message: ${result}`);
+    log_1.log(`Replacing message: ${result}`);
     return result;
 }
 function getMessageInfo(message, config) {
