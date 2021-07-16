@@ -81,30 +81,30 @@ function getMessageInfo(message: string, config: JPCMConfig): MessageInfo {
   };
 }
 
-function findFirstLineToInsert(lines: string[], config: JPCMConfig): number {
-  let firstNotEmptyLine = -1;
-
-  for (let i = 0; i < lines.length; ++i) {
-    const line = lines[i];
-
-    // ignore everything after commentChar or the scissors comment, which present when doing a --verbose commit,
-    // or `git config commit.status true`
-    if (line === gitVerboseStatusSeparator) {
-      break;
-    }
-
-    if (line.startsWith(config.commentChar)) {
-      continue;
-    }
-
-    if (firstNotEmptyLine === -1) {
-      firstNotEmptyLine = i;
-      break;
-    }
-  }
-
-  return firstNotEmptyLine;
-}
+// function findFirstLineToInsert(lines: string[], config: JPCMConfig): number {
+//   let firstNotEmptyLine = -1;
+//
+//   for (let i = 0; i < lines.length; ++i) {
+//     const line = lines[i];
+//
+//     // ignore everything after commentChar or the scissors comment, which present when doing a --verbose commit,
+//     // or `git config commit.status true`
+//     if (line === gitVerboseStatusSeparator) {
+//       break;
+//     }
+//
+//     if (line.startsWith(config.commentChar)) {
+//       continue;
+//     }
+//
+//     if (firstNotEmptyLine === -1) {
+//       firstNotEmptyLine = i;
+//       break;
+//     }
+//   }
+//
+//   return firstNotEmptyLine;
+// }
 
 function insertJiraTicketIntoMessage(messageInfo: MessageInfo, jiraTickets: string[], config: JPCMConfig): string {
   const message = messageInfo.originalMessage;
@@ -132,9 +132,10 @@ function insertJiraTicketIntoMessage(messageInfo: MessageInfo, jiraTickets: stri
     //   }
     // }
   } else {
-    const firstLineToInsert = findFirstLineToInsert(lines, config);
+    // const firstLineToInsert = findFirstLineToInsert(lines, config);
 
-    debug(`First line to insert is: ${firstLineToInsert > -1 ? lines[firstLineToInsert] : ''} (${firstLineToInsert})`);
+    // eslint-disable-next-line max-len
+    // debug(`First line to insert is: ${firstLineToInsert > -1 ? lines[firstLineToInsert] : ''} (${firstLineToInsert})`);
 
     // if (firstLineToInsert !== -1) {
     //   const line = lines[firstLineToInsert];

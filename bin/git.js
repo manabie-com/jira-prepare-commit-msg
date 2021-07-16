@@ -81,25 +81,30 @@ function getMessageInfo(message, config) {
         hasVerboseText: message.includes(gitVerboseStatusSeparator),
     };
 }
-function findFirstLineToInsert(lines, config) {
-    let firstNotEmptyLine = -1;
-    for (let i = 0; i < lines.length; ++i) {
-        const line = lines[i];
-        // ignore everything after commentChar or the scissors comment, which present when doing a --verbose commit,
-        // or `git config commit.status true`
-        if (line === gitVerboseStatusSeparator) {
-            break;
-        }
-        if (line.startsWith(config.commentChar)) {
-            continue;
-        }
-        if (firstNotEmptyLine === -1) {
-            firstNotEmptyLine = i;
-            break;
-        }
-    }
-    return firstNotEmptyLine;
-}
+// function findFirstLineToInsert(lines: string[], config: JPCMConfig): number {
+//   let firstNotEmptyLine = -1;
+//
+//   for (let i = 0; i < lines.length; ++i) {
+//     const line = lines[i];
+//
+//     // ignore everything after commentChar or the scissors comment, which present when doing a --verbose commit,
+//     // or `git config commit.status true`
+//     if (line === gitVerboseStatusSeparator) {
+//       break;
+//     }
+//
+//     if (line.startsWith(config.commentChar)) {
+//       continue;
+//     }
+//
+//     if (firstNotEmptyLine === -1) {
+//       firstNotEmptyLine = i;
+//       break;
+//     }
+//   }
+//
+//   return firstNotEmptyLine;
+// }
 function insertJiraTicketIntoMessage(messageInfo, jiraTickets, config) {
     const message = messageInfo.originalMessage;
     const lines = message.split('\n').map((line) => line.trimLeft());
@@ -126,8 +131,9 @@ function insertJiraTicketIntoMessage(messageInfo, jiraTickets, config) {
         // }
     }
     else {
-        const firstLineToInsert = findFirstLineToInsert(lines, config);
-        log_1.debug(`First line to insert is: ${firstLineToInsert > -1 ? lines[firstLineToInsert] : ''} (${firstLineToInsert})`);
+        // const firstLineToInsert = findFirstLineToInsert(lines, config);
+        // eslint-disable-next-line max-len
+        // debug(`First line to insert is: ${firstLineToInsert > -1 ? lines[firstLineToInsert] : ''} (${firstLineToInsert})`);
         // if (firstLineToInsert !== -1) {
         //   const line = lines[firstLineToInsert];
         //   const tickets = excludeIncludedTickets(line, jiraTickets);
