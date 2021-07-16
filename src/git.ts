@@ -13,7 +13,8 @@ interface MessageInfo {
 }
 
 // eslint-disable-next-line max-len
-const conventionalCommitRegExp = /^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z- ]+\)!?)?: ([\w \S]+)$/g;
+const conventionalCommitRegExp =
+  /^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z- ]+\)!?)?: ([\w \S]+)$/g;
 const gitVerboseStatusSeparator = '------------------------ >8 ------------------------';
 
 function getMsgFilePath(index = 0): string {
@@ -46,8 +47,13 @@ function escapeReplacement(str: string): string {
   return str.replace(/[$]/, '$$$$'); // In replacement to escape $ needs $$
 }
 
-function replaceMessageByPattern(jiraTicket: string, message: string, pattern: string): string {
-  const result = pattern.replace('$J', escapeReplacement(jiraTicket)).replace('$M', escapeReplacement(message));
+function replaceMessageByPattern(jiraTickets: string[], message: string, pattern: string): string {
+  const transformed = jiraTickets
+    .map((ticket) => {
+      return `[${ticket}]`;
+    })
+    .join('');
+  const result = pattern.replace('$J', escapeReplacement(transformed)).replace('$M', escapeReplacement(message));
   debug(`Replacing message: ${result}`);
   return result;
 }
@@ -100,30 +106,31 @@ function findFirstLineToInsert(lines: string[], config: JPCMConfig): number {
   return firstNotEmptyLine;
 }
 
-function insertJiraTicketIntoMessage(messageInfo: MessageInfo, jiraTicket: string, config: JPCMConfig): string {
+function insertJiraTicketIntoMessage(messageInfo: MessageInfo, jiraTickets: string[], config: JPCMConfig): string {
   const message = messageInfo.originalMessage;
   const lines = message.split('\n').map((line) => line.trimLeft());
 
   if (!messageInfo.hasUserText) {
-    debug(`User didn't write the message. Allow empty commit is ${String(config.allowEmptyCommitMessage)}`);
-
-    const preparedMessage = replaceMessageByPattern(jiraTicket, '', config.messagePattern);
-
-    if (messageInfo.hasAnyText) {
-      const insertedMessage = config.allowEmptyCommitMessage
-        ? preparedMessage
-        : `# ${preparedMessage}\n` +
-          '# JIRA prepare commit msg > ' +
-          'Please uncomment the line above if you want to insert JIRA ticket into commit message';
-
-      lines.unshift(insertedMessage);
-    } else {
-      if (config.allowEmptyCommitMessage) {
-        lines.unshift(preparedMessage);
-      } else {
-        debug(`Commit message is empty. Skipping...`);
-      }
-    }
+    debug(`Commit message is empty. Skipping...`);
+    // debug(`User didn't write the message. Allow empty commit is ${String(config.allowEmptyCommitMessage)}`);
+    //
+    // const preparedMessage = replaceMessageByPattern(jiraTickets, '', config.messagePattern);
+    //
+    // if (messageInfo.hasAnyText) {
+    //   const insertedMessage = config.allowEmptyCommitMessage
+    //     ? preparedMessage
+    //     : `# ${preparedMessage}\n` +
+    //       '# JIRA prepare commit msg > ' +
+    //       'Please uncomment the line above if you want to insert JIRA ticket into commit message';
+    //
+    //   lines.unshift(insertedMessage);
+    // } else {
+    //   if (config.allowEmptyCommitMessage) {
+    //     lines.unshift(preparedMessage);
+    //   } else {
+    //
+    //   }
+    // }
   } else {
     const firstLineToInsert = findFirstLineToInsert(lines, config);
 
@@ -131,6 +138,7 @@ function insertJiraTicketIntoMessage(messageInfo: MessageInfo, jiraTicket: strin
 
     if (firstLineToInsert !== -1) {
       const line = lines[firstLineToInsert];
+      const tickets = excludeIncludedTickets(line, jiraTickets);
 
       if (config.isConventionalCommit) {
         debug(`Finding conventional commit in: ${line}`);
@@ -139,23 +147,44 @@ function insertJiraTicketIntoMessage(messageInfo: MessageInfo, jiraTicket: strin
         if (match) {
           debug(`Conventional commit message: ${match}`);
           lines[firstLineToInsert] = `${type}${scope || ''}: ${replaceMessageByPattern(
-            jiraTicket,
+            tickets,
             msg,
             config.messagePattern,
           )}`;
         }
-      } else if (!line.includes(jiraTicket)) {
-        lines[firstLineToInsert] = replaceMessageByPattern(jiraTicket, line || '', config.messagePattern);
+      } else {
+        if (tickets.length > 0) {
+          lines[firstLineToInsert] = replaceMessageByPattern(jiraTickets, line || '', config.messagePattern);
+        }
       }
     }
 
-    // Add jira ticket into the message in case of missing
-    if (lines.every((line) => !line.includes(jiraTicket))) {
-      lines[0] = replaceMessageByPattern(jiraTicket, lines[0] || '', config.messagePattern);
+    const forceFirstLine = lines[0];
+    const distinctTickets: Set<string> = new Set(); // start with full tickets
+
+    lines.forEach((line) => {
+      // search every line to check if any ticket is existed
+      const tickets = excludeIncludedTickets(line, jiraTickets);
+      if (tickets.length > 0) {
+        tickets.forEach((ticket) => {
+          distinctTickets.add(ticket);
+        });
+      }
+    });
+    const distinctTicketsArr = [...distinctTickets];
+
+    if (distinctTicketsArr.length > 0) {
+      lines[0] = replaceMessageByPattern(distinctTicketsArr, forceFirstLine || '', config.messagePattern);
     }
   }
 
   return lines.join('\n');
+}
+
+function excludeIncludedTickets(line: string, tickets: string[]): string[] {
+  return tickets.filter((ticket) => {
+    return !line.includes(ticket);
+  });
 }
 
 export type GitRevParseResult = {
@@ -219,21 +248,20 @@ export async function getBranchName(gitRoot: string): Promise<string> {
   });
 }
 
-export function getJiraTicket(branchName: string, config: JPCMConfig): string {
+export function getJiraTicket(branchName: string, config: JPCMConfig): string[] {
   debug('getJiraTicket');
 
   const jiraIdPattern = new RegExp(config.jiraTicketPattern, 'i');
   const matched = jiraIdPattern.exec(branchName);
-  const jiraTicket = matched && matched[0];
 
-  if (!jiraTicket) {
+  if (!matched || matched.length === 0) {
     throw new Error('The JIRA ticket ID not found');
   }
 
-  return jiraTicket.toUpperCase();
+  return matched.map((e) => e.toUpperCase());
 }
 
-export function writeJiraTicket(jiraTicket: string, config: JPCMConfig): void {
+export function writeJiraTicket(jiraTickets: string[], config: JPCMConfig): void {
   debug('writeJiraTicket');
 
   const messageFilePath = getMsgFilePath();
@@ -247,7 +275,7 @@ export function writeJiraTicket(jiraTicket: string, config: JPCMConfig): void {
   }
 
   const messageInfo = getMessageInfo(message, config);
-  const messageWithJiraTicket = insertJiraTicketIntoMessage(messageInfo, jiraTicket, config);
+  const messageWithJiraTicket = insertJiraTicketIntoMessage(messageInfo, jiraTickets, config);
 
   debug(messageWithJiraTicket);
 
